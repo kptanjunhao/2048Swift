@@ -133,6 +133,7 @@ class ViewController: UIViewController {
     }
     
     func lrmove(isright:Bool){
+        var ablecreatenew = true
         for i in 0...3{
             var numViews = [UIView]()
             for j in 0...3{
@@ -178,6 +179,12 @@ class ViewController: UIViewController {
                             numViews[numViews.count-1-numViewindex].tag = 1+numViewindex+i*4
                         }
                         
+                        },completion: {
+                            (Bool) -> Void in
+                            if ablecreatenew{
+                                ablecreatenew = false
+                                self.createRandomNum(true)
+                            }
                     })
                 }
             }
@@ -196,15 +203,16 @@ class ViewController: UIViewController {
     }
     
     func udmove(isdown:Bool){
+        var ablecreatenew = true
         for i in 0...3{
             var numViews = [UIView]()
             for j in 0...3{
                 if !isdown{
-                    if let numView = self.gameBGView.viewWithTag(4-j+i*4){
+                    if let numView = self.gameBGView.viewWithTag(4-i+j*4){
                         numViews.append(numView)
                     }
                 }else{
-                    if let numView = self.gameBGView.viewWithTag(1+j+i*4){
+                    if let numView = self.gameBGView.viewWithTag(1+i+j*4){
                         numViews.append(numView)
                     }
                 }
@@ -218,7 +226,7 @@ class ViewController: UIViewController {
                         print("\(j):\((numViews[j].viewWithTag(-1) as! UILabel).text)")
                         if (numViews[i].viewWithTag(-1) as! UILabel).text == (numViews[j].viewWithTag(-1) as! UILabel).text{
                             UIView.animateWithDuration(0.2, animations: {
-                                numViews[j].frame.origin.x = numViews[i].frame.origin.x
+                                numViews[j].frame.origin.y = numViews[i].frame.origin.y
                                 },completion: {
                                     (Bool) -> Void in
                                     numViews[j].removeFromSuperview()
@@ -234,18 +242,25 @@ class ViewController: UIViewController {
                 for numViewindex in 0...(numViews.count-1){
                     UIView.animateWithDuration(0.5, animations: {
                         if isdown{
-                            numViews[numViews.count-1-numViewindex].frame.origin.x = self.pos(3-numViewindex).x
-                            numViews[numViews.count-1-numViewindex].tag = 4-numViewindex+i*4
+                            numViews[numViews.count-1-numViewindex].frame.origin.y = self.pos(12-numViewindex*4).y
+                            numViews[numViews.count-1-numViewindex].tag = 13-numViewindex*4+i
                         }else{
-                            numViews[numViews.count-1-numViewindex].frame.origin.x = self.pos(numViewindex).x
-                            numViews[numViews.count-1-numViewindex].tag = 1+numViewindex+i*4
+                            numViews[numViews.count-1-numViewindex].frame.origin.y = self.pos(numViewindex*4).y
+                            numViews[numViews.count-1-numViewindex].tag = 1+numViewindex*4+i
                         }
                         
+                        },completion: {
+                            (Bool) -> Void in
+                            if ablecreatenew{
+                                ablecreatenew = false
+                                self.createRandomNum(true)
+                            }
                     })
                 }
             }
         }
         setposhasvalue()
+        
 
     }
     
