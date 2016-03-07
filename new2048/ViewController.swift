@@ -152,13 +152,12 @@ class ViewController: UIViewController {
                 for i in 0...(numViews.count-1){
                     let j = i-1
                     if j != -1{
-                        print("\(i):\((numViews[i].viewWithTag(-1) as! UILabel).text)")
-                        print("\(j):\((numViews[j].viewWithTag(-1) as! UILabel).text)")
                         if (numViews[i].viewWithTag(-1) as! UILabel).text == (numViews[j].viewWithTag(-1) as! UILabel).text{
                             UIView.animateWithDuration(0.2, animations: {
                                 numViews[j].frame.origin.x = numViews[i].frame.origin.x
                                 },completion: {
                                     (Bool) -> Void in
+                                    self.addscore((numViews[i].viewWithTag(-1) as! UILabel).text!)
                                     numViews[j].removeFromSuperview()
                                     (numViews[i].viewWithTag(-1) as! UILabel).text = "\(Int((numViews[i].viewWithTag(-1) as! UILabel).text!)!*2)"
                                     numViews[i].backgroundColor = self.numColorBG(Int((numViews[i].viewWithTag(-1) as! UILabel).text!)!)
@@ -219,20 +218,24 @@ class ViewController: UIViewController {
             }
             
             if numViews.count != 0{
-                for i in 0...(numViews.count-1){
-                    let j = i-1
-                    if j != -1{
-                        print("\(i):\((numViews[i].viewWithTag(-1) as! UILabel).text)")
-                        print("\(j):\((numViews[j].viewWithTag(-1) as! UILabel).text)")
+                for j in 0...(numViews.count-1){
+                    var i = j-1
+                    var condition = i != -1
+                    if !isdown{
+                        i = j+1
+                        condition = i != 0 && i != numViews.count
+                    }
+                    if condition{
                         if (numViews[i].viewWithTag(-1) as! UILabel).text == (numViews[j].viewWithTag(-1) as! UILabel).text{
                             UIView.animateWithDuration(0.2, animations: {
-                                numViews[j].frame.origin.y = numViews[i].frame.origin.y
+                                numViews[i].frame.origin.y = numViews[j].frame.origin.y
                                 },completion: {
                                     (Bool) -> Void in
-                                    numViews[j].removeFromSuperview()
-                                    (numViews[i].viewWithTag(-1) as! UILabel).text = "\(Int((numViews[i].viewWithTag(-1) as! UILabel).text!)!*2)"
-                                    numViews[i].backgroundColor = self.numColorBG(Int((numViews[i].viewWithTag(-1) as! UILabel).text!)!)
-                                    (numViews[i].viewWithTag(-1) as! UILabel).textColor = self.numColor(Int((numViews[i].viewWithTag(-1) as! UILabel).text!)!)
+                                    self.addscore((numViews[i].viewWithTag(-1) as! UILabel).text!)
+                                    numViews[i].removeFromSuperview()
+                                    (numViews[j].viewWithTag(-1) as! UILabel).text = "\(Int((numViews[j].viewWithTag(-1) as! UILabel).text!)!*2)"
+                                    numViews[j].backgroundColor = self.numColorBG(Int((numViews[j].viewWithTag(-1) as! UILabel).text!)!)
+                                    (numViews[j].viewWithTag(-1) as! UILabel).textColor = self.numColor(Int((numViews[j].viewWithTag(-1) as! UILabel).text!)!)
                                     self.setposhasvalue()
                             })
                         }
@@ -245,8 +248,8 @@ class ViewController: UIViewController {
                             numViews[numViews.count-1-numViewindex].frame.origin.y = self.pos(12-numViewindex*4).y
                             numViews[numViews.count-1-numViewindex].tag = 13-numViewindex*4+i
                         }else{
-                            numViews[numViews.count-1-numViewindex].frame.origin.y = self.pos(numViewindex*4).y
-                            numViews[numViews.count-1-numViewindex].tag = 1+numViewindex*4+i
+                            numViews[numViewindex].frame.origin.y = self.pos(numViewindex*4).y
+                            numViews[numViewindex].tag = 1+numViewindex*4+(3-i)
                         }
                         
                         },completion: {
@@ -264,6 +267,10 @@ class ViewController: UIViewController {
 
     }
     
+    func addscore(score:String){
+        scoreLabel.text = "\(Int(scoreLabel.text!)! + Int(score)!*2)"
+    }
+    
     func pos(serialnum:Int) -> CGPoint{
         let pos = CGPointMake(8+CGFloat(serialnum%4)*(8+(gameframe.width-40)/4), 8+CGFloat(serialnum/4)*(8+(gameframe.width-40)/4))
         return pos
@@ -274,7 +281,10 @@ class ViewController: UIViewController {
     }
     
     func gameOver(){
-        print("gameOver")
+        let alert = UIAlertController(title: "提示", message: "无法继续新建格子了，继续玩请点击清空", preferredStyle: .Alert)
+        let OK = UIAlertAction(title: "好", style: .Default, handler: nil)
+        alert.addAction(OK)
+        self.presentViewController(alert, animated: true, completion: nil)
     }
     
     func createInPos(serialnum:Int,number:Int){
