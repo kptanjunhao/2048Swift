@@ -62,13 +62,26 @@ class ViewController: UIViewController {
         startView.addSubview(startlbl)
         let starttap = UITapGestureRecognizer(target: self, action: Selector("Go"))
         startView.addGestureRecognizer(starttap)
-        //设置所有点尚未有值
-        for i in 0...15{
-            poshasvalue[i] = false
-        }
+        
+        
         
         
     }
+    
+    func tprint(){
+        print(poshasvalue)
+    }
+    
+    func reset(){
+        for i in 1...16{
+            poshasvalue[i] = false
+            if let box = self.gameBGView.viewWithTag(i){
+                box.removeFromSuperview()
+            }
+        }
+        createRandomNum(false)
+    }
+    
     //点击移除开始画面
     func Go(){
         UIView.animateWithDuration(0.2, animations: {
@@ -81,131 +94,159 @@ class ViewController: UIViewController {
                         (Bool) -> Void in
                         self.startView.removeFromSuperview()
                         self.drawGameArea()
+                        //添加输出poshasvalue信息
+                        let testbtn = UIButton(frame: CGRectMake(20,self.view.frame.height-70,80,50))
+                        testbtn.addTarget(self, action: Selector("tprint"), forControlEvents: .TouchUpInside)
+                        testbtn.backgroundColor = UIColor.blackColor()
+                        testbtn.layer.cornerRadius = 10
+                        testbtn.setTitle("测试按钮", forState: .Normal)
+                        self.view.addSubview(testbtn)
+                        
+                        //添加清空按钮
+                        let clearbtn = UIButton(frame: CGRectMake(self.view.frame.width-100,self.view.frame.height-70,80,50))
+                        clearbtn.addTarget(self, action: Selector("reset"), forControlEvents: .TouchUpInside)
+                        clearbtn.backgroundColor = UIColor.redColor()
+                        clearbtn.layer.cornerRadius = 10
+                        clearbtn.setTitle("清空", forState: .Normal)
+                        self.view.addSubview(clearbtn)
                 })
                 
         })
     }
     
-    func allNumView() -> [UIView]{
-        var numViews = [UIView]()
-        for view in gameBGView.subviews{
-            if view.tag != 0{
-                numViews.append(view)
-            }
-        }
-        return numViews
-    }
-    
     func up(){
-        let numViews = allNumView()
-        var alreadyCreated = false
-        for numView in numViews{
-            if numView.tag-1 != (numView.tag-1)%4{
-                var desfloor = [Int:Int]()
-                desfloor[(numView.tag-1)%4] = 0
-                for i in (numView.tag-1)/4...3{
-                    let curmappos = (3-i)*4+((numView.tag)%4==0 ? 4 : (numView.tag)%4)
-                    if let mapnumView = self.view.viewWithTag(curmappos){
-                        //检测寻址目标是否是自身
-                        if mapnumView.tag != numView.tag{
-                            desfloor[(numView.tag-1)%4]! += 1
-                            //检测落点的上一层或者当前的上一层数字是否相等
-                            if mapnumView.tag-4 == (desfloor[(numView.tag-1)%4]!*4+((numView.tag)%4==0 ? 4 : (numView.tag)%4)) || mapnumView.tag-4 == numView.tag{
-                                let mapnum = (mapnumView.viewWithTag(-1) as! UILabel).text
-                                let curnum = (numView.viewWithTag(-1) as! UILabel).text
-                                print(mapnum!+","+curnum!)
-                                if mapnum == curnum{
-                                    mapnumView.removeFromSuperview()
-                                    (numView.viewWithTag(-1) as! UILabel).text = "\(Int(curnum!)!*2)"
-                                    numView.backgroundColor = numColorBG(Int(curnum!)!*2)
-                                    (numView.viewWithTag(-1) as! UILabel).textColor = numColor(Int(curnum!)!*2)
-                                    desfloor[(numView.tag-1)%4]! -= 1
-                                }
-                            }
-                        }
-                    }
-                }
-                
-                if desfloor[(numView.tag-1)%4] == (numView.tag-1)/4{
-                    continue
-                }
-                let despos = desfloor[(numView.tag-1)%4]!*4+(numView.tag-1)%4
-                
-                poshasvalue[numView.tag-1] = false
-                poshasvalue[despos] = true
-                numView.tag = despos+1
-                
-                UIView.animateWithDuration(0.2, animations: {
-                    numView.frame.origin.y = self.pos(despos).y
-                    }, completion: {
-                        (Bool) -> Void in
-                        if !alreadyCreated{
-                            self.createRandomNum((Int(arc4random()%2)+1)*2)
-                            alreadyCreated = true
-                        }
-                        
-                })
-            }
-        }
+        udmove(false)
     }
     
     func down(){
-        let numViews = allNumView()
-        var alreadyCreated = false
-        for numView in numViews{
-            if numView.tag-1 != 12+(numView.tag-1)%4{
-                var desfloor = [Int:Int]()
-                desfloor[(numView.tag-1)%4] = 3
-                for i in (numView.tag-1)/4...3{
-                    let curmappos = i*4+((numView.tag)%4==0 ? 4 : (numView.tag)%4)
-                    if let mapnumView = self.view.viewWithTag(curmappos){
-                        if mapnumView.tag != numView.tag{
-                            desfloor[(numView.tag-1)%4]! -= 1
-                            if mapnumView.tag == (desfloor[(numView.tag-1)%4]!*4+((numView.tag)%4==0 ? 4 : (numView.tag)%4)) || mapnumView.tag-4 == numView.tag{
-                                let mapnum = (mapnumView.viewWithTag(-1) as! UILabel).text
-                                let curnum = (numView.viewWithTag(-1) as! UILabel).text
-                                print(mapnum!+","+curnum!)
-                                if mapnum == curnum{
-                                    mapnumView.removeFromSuperview()
-                                    (numView.viewWithTag(-1) as! UILabel).text = "\(Int(curnum!)!*2)"
-                                    numView.backgroundColor = numColorBG(Int(curnum!)!*2)
-                                    (numView.viewWithTag(-1) as! UILabel).textColor = numColor(Int(curnum!)!*2)
-                                    desfloor[(numView.tag-1)%4]! += 1
-                                }
-                            }
+        udmove(true)
+    }
+    
+    
+    func left(){
+        lrmove(false)
+    }
+    
+    func right(){
+        lrmove(true)
+        
+    }
+    
+    func lrmove(isright:Bool){
+        for i in 0...3{
+            var numViews = [UIView]()
+            for j in 0...3{
+                if !isright{
+                    if let numView = self.gameBGView.viewWithTag(4-j+i*4){
+                        numViews.append(numView)
+                    }
+                }else{
+                    if let numView = self.gameBGView.viewWithTag(1+j+i*4){
+                        numViews.append(numView)
+                    }
+                }
+            }
+            
+            if numViews.count != 0{
+                for i in 0...(numViews.count-1){
+                    let j = i-1
+                    if j != -1{
+                        print("\(i):\((numViews[i].viewWithTag(-1) as! UILabel).text)")
+                        print("\(j):\((numViews[j].viewWithTag(-1) as! UILabel).text)")
+                        if (numViews[i].viewWithTag(-1) as! UILabel).text == (numViews[j].viewWithTag(-1) as! UILabel).text{
+                            UIView.animateWithDuration(0.2, animations: {
+                                numViews[j].frame.origin.x = numViews[i].frame.origin.x
+                                },completion: {
+                                    (Bool) -> Void in
+                                    numViews[j].removeFromSuperview()
+                                    (numViews[i].viewWithTag(-1) as! UILabel).text = "\(Int((numViews[i].viewWithTag(-1) as! UILabel).text!)!*2)"
+                                    numViews[i].backgroundColor = self.numColorBG(Int((numViews[i].viewWithTag(-1) as! UILabel).text!)!)
+                                    (numViews[i].viewWithTag(-1) as! UILabel).textColor = self.numColor(Int((numViews[i].viewWithTag(-1) as! UILabel).text!)!)
+                                    self.setposhasvalue()
+                            })
                         }
                     }
                 }
                 
-                if desfloor[(numView.tag-1)%4] == (numView.tag-1)/4{
-                    continue
-                }
-                let despos = desfloor[(numView.tag-1)%4]!*4+(numView.tag-1)%4
-                
-                poshasvalue[numView.tag-1] = false
-                poshasvalue[despos] = true
-                numView.tag = despos+1
-                
-                UIView.animateWithDuration(0.2, animations: {
-                    numView.frame.origin.y = self.pos(despos).y
-                    }, completion: {
-                        (Bool) -> Void in
-                        if !alreadyCreated{
-                            self.createRandomNum((Int(arc4random()%2)+1)*2)
-                            alreadyCreated = true
+                for numViewindex in 0...(numViews.count-1){
+                    UIView.animateWithDuration(0.5, animations: {
+                        if isright{
+                            numViews[numViews.count-1-numViewindex].frame.origin.x = self.pos(3-numViewindex).x
+                            numViews[numViews.count-1-numViewindex].tag = 4-numViewindex+i*4
+                        }else{
+                            numViews[numViews.count-1-numViewindex].frame.origin.x = self.pos(numViewindex).x
+                            numViews[numViews.count-1-numViewindex].tag = 1+numViewindex+i*4
                         }
                         
-                })
+                    })
+                }
+            }
+        }
+        setposhasvalue()
+    }
+    
+    func setposhasvalue(){
+        for i in 1...16{
+            if let _ = self.gameBGView.viewWithTag(i){
+                poshasvalue[i] = true
+            }else{
+                poshasvalue[i] = false
             }
         }
     }
     
-    func left(){
-        self.createRandomNum((Int(arc4random()%2)+1)*2)
-    }
-    
-    func right(){
-        
+    func udmove(isdown:Bool){
+        for i in 0...3{
+            var numViews = [UIView]()
+            for j in 0...3{
+                if !isdown{
+                    if let numView = self.gameBGView.viewWithTag(4-j+i*4){
+                        numViews.append(numView)
+                    }
+                }else{
+                    if let numView = self.gameBGView.viewWithTag(1+j+i*4){
+                        numViews.append(numView)
+                    }
+                }
+            }
+            
+            if numViews.count != 0{
+                for i in 0...(numViews.count-1){
+                    let j = i-1
+                    if j != -1{
+                        print("\(i):\((numViews[i].viewWithTag(-1) as! UILabel).text)")
+                        print("\(j):\((numViews[j].viewWithTag(-1) as! UILabel).text)")
+                        if (numViews[i].viewWithTag(-1) as! UILabel).text == (numViews[j].viewWithTag(-1) as! UILabel).text{
+                            UIView.animateWithDuration(0.2, animations: {
+                                numViews[j].frame.origin.x = numViews[i].frame.origin.x
+                                },completion: {
+                                    (Bool) -> Void in
+                                    numViews[j].removeFromSuperview()
+                                    (numViews[i].viewWithTag(-1) as! UILabel).text = "\(Int((numViews[i].viewWithTag(-1) as! UILabel).text!)!*2)"
+                                    numViews[i].backgroundColor = self.numColorBG(Int((numViews[i].viewWithTag(-1) as! UILabel).text!)!)
+                                    (numViews[i].viewWithTag(-1) as! UILabel).textColor = self.numColor(Int((numViews[i].viewWithTag(-1) as! UILabel).text!)!)
+                                    self.setposhasvalue()
+                            })
+                        }
+                    }
+                }
+                
+                for numViewindex in 0...(numViews.count-1){
+                    UIView.animateWithDuration(0.5, animations: {
+                        if isdown{
+                            numViews[numViews.count-1-numViewindex].frame.origin.x = self.pos(3-numViewindex).x
+                            numViews[numViews.count-1-numViewindex].tag = 4-numViewindex+i*4
+                        }else{
+                            numViews[numViews.count-1-numViewindex].frame.origin.x = self.pos(numViewindex).x
+                            numViews[numViews.count-1-numViewindex].tag = 1+numViewindex+i*4
+                        }
+                        
+                    })
+                }
+            }
+        }
+        setposhasvalue()
+
     }
     
     func pos(serialnum:Int) -> CGPoint{
@@ -214,17 +255,39 @@ class ViewController: UIViewController {
     }
     
     func startGame(){
-        createRandomNum(2)
+        createRandomNum(false)
     }
     
     func gameOver(){
         print("gameOver")
     }
     
-    func createRandomNum(number:Int){
+    func createInPos(serialnum:Int,number:Int){
+        let pos = CGPointMake(8+CGFloat(serialnum%4)*(8+(gameframe.width-40)/4), 8+CGFloat(serialnum/4)*(8+(gameframe.width-40)/4))
+        //设置数字视图
+        let Num = UIView(frame: CGRectMake(pos.x,pos.y,(gameframe.width-40)/4,(gameframe.width-40)/4))
+        Num.layer.cornerRadius = 8
+        Num.tag = serialnum+1
+        //设置数字Label
+        let NumLabel = UILabel(frame: CGRectMake(0,0,(gameframe.width-40)/4,(gameframe.width-60)/4))
+        NumLabel.tag = -1
+        NumLabel.text = "\(number)"
+        NumLabel.textColor = numColor(number)
+        NumLabel.font = UIFont.boldSystemFontOfSize(30)
+        NumLabel.textAlignment = .Center
+        Num.backgroundColor = numColorBG(number)
+        Num.addSubview(NumLabel)
+        gameBGView.addSubview(Num)
+        poshasvalue[serialnum+1] = true
+    }
+    
+    func createRandomNum(random:Bool){
+        var number = 2
+        if random{
+            number = (Int(arc4random()%2)+1)*2
+        }
         var numpos = Int(arc4random()%16)
         var curposnum = 0
-        
         for point in poshasvalue{
             if point.1{
                 curposnum++
@@ -234,15 +297,18 @@ class ViewController: UIViewController {
             gameOver()
             return
         }else{
-            if poshasvalue[numpos]!{
-                while poshasvalue[numpos]!{
+            if poshasvalue[numpos+1]!{
+                while poshasvalue[numpos+1]!{
                     numpos = Int(arc4random()%16)
                 }
             }
         }
         let Point = pos(numpos)
+        //点击print当前tag
+        let tagtap = UITapGestureRecognizer(target: self, action: Selector("ptag:"))
+        
         //设置数字视图
-        let Num = UIView(frame: CGRectMake(Point.x,Point.y,(gameframe.width-40)/4,(gameframe.width-40)/4))
+        let Num = UIView(frame: CGRectMake(Point.x+(gameframe.width-40)/8,Point.y+(gameframe.width-40)/8,5,5))
         Num.layer.cornerRadius = 8
         Num.tag = numpos+1
         //设置数字Label
@@ -255,7 +321,17 @@ class ViewController: UIViewController {
         Num.backgroundColor = numColorBG(number)
         Num.addSubview(NumLabel)
         gameBGView.addSubview(Num)
-        poshasvalue[numpos] = true
+        UIView.animateWithDuration(0.2, animations: {
+            Num.frame = CGRectMake(Point.x,Point.y,(self.gameframe.width-40)/4, (self.gameframe.width-40)/4)
+        })
+        poshasvalue[numpos+1] = true
+        
+        
+        Num.addGestureRecognizer(tagtap)
+    }
+    
+    func ptag(sender:UITapGestureRecognizer){
+        print(sender.view?.tag)
     }
     
     func numColor(number:Int) -> UIColor{
@@ -324,7 +400,7 @@ class ViewController: UIViewController {
                 self.view.addGestureRecognizer(down)
                 self.view.addGestureRecognizer(left)
                 self.view.addGestureRecognizer(right)
-                
+                self.setposhasvalue()
                 self.startGame()
         })
     }
