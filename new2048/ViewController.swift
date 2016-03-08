@@ -80,6 +80,7 @@ class ViewController: UIViewController {
             }
         }
         createRandomNum(false)
+        scoreLabel.text = "0"
     }
     
     //点击移除开始画面
@@ -167,9 +168,10 @@ class ViewController: UIViewController {
                         }
                     }
                 }
-                
+                var ischange = false
                 for numViewindex in 0...(numViews.count-1){
-                    UIView.animateWithDuration(0.5, animations: {
+                    UIView.animateWithDuration(0.3, animations: {
+                        let rawx = numViews[numViews.count-1-numViewindex].frame.origin.x
                         if isright{
                             numViews[numViews.count-1-numViewindex].frame.origin.x = self.pos(3-numViewindex).x
                             numViews[numViews.count-1-numViewindex].tag = 4-numViewindex+i*4
@@ -177,10 +179,15 @@ class ViewController: UIViewController {
                             numViews[numViews.count-1-numViewindex].frame.origin.x = self.pos(numViewindex).x
                             numViews[numViews.count-1-numViewindex].tag = 1+numViewindex+i*4
                         }
+                        if !ischange && rawx == numViews[numViews.count-1-numViewindex].frame.origin.x{
+                            ischange = false
+                        }else{
+                            ischange = true
+                        }
                         
                         },completion: {
                             (Bool) -> Void in
-                            if ablecreatenew{
+                            if ablecreatenew && numViewindex == numViews.count-1 && ischange{
                                 ablecreatenew = false
                                 self.createRandomNum(true)
                             }
@@ -189,6 +196,9 @@ class ViewController: UIViewController {
             }
         }
         setposhasvalue()
+        if curposnum() == 16{
+            gameOver()
+        }
     }
     
     func setposhasvalue(){
@@ -241,9 +251,11 @@ class ViewController: UIViewController {
                         }
                     }
                 }
-                
+                var ischange = false
                 for numViewindex in 0...(numViews.count-1){
-                    UIView.animateWithDuration(0.5, animations: {
+                    
+                    UIView.animateWithDuration(0.3, animations: {
+                        let rawy = numViews[numViews.count-1-numViewindex].frame.origin.y
                         if isdown{
                             numViews[numViews.count-1-numViewindex].frame.origin.y = self.pos(12-numViewindex*4).y
                             numViews[numViews.count-1-numViewindex].tag = 13-numViewindex*4+i
@@ -252,9 +264,15 @@ class ViewController: UIViewController {
                             numViews[numViewindex].tag = 1+numViewindex*4+(3-i)
                         }
                         
+                        if !ischange && rawy == numViews[numViews.count-1-numViewindex].frame.origin.y{
+                            ischange = false
+                        }else{
+                            ischange = true
+                        }
+                        
                         },completion: {
                             (Bool) -> Void in
-                            if ablecreatenew{
+                            if ablecreatenew && numViewindex == numViews.count-1 && ischange{
                                 ablecreatenew = false
                                 self.createRandomNum(true)
                             }
@@ -263,6 +281,9 @@ class ViewController: UIViewController {
             }
         }
         setposhasvalue()
+        if curposnum() == 16{
+            gameOver()
+        }
         
 
     }
@@ -281,10 +302,34 @@ class ViewController: UIViewController {
     }
     
     func gameOver(){
-        let alert = UIAlertController(title: "提示", message: "无法继续新建格子了，继续玩请点击清空", preferredStyle: .Alert)
-        let OK = UIAlertAction(title: "好", style: .Default, handler: nil)
-        alert.addAction(OK)
-        self.presentViewController(alert, animated: true, completion: nil)
+        var gameover = false
+        
+        for i in 1...16{
+            var alldir = [Int]()
+            let up = i - 4
+            let down = i + 4
+            let left = (i - 1)%4 != 0 ? i - 1 : 999
+            let right = (i + 1)%4 != 1 ? i + 1 : 999
+            alldir.append(up)
+            alldir.append(down)
+            alldir.append(left)
+            alldir.append(right)
+            for dir in alldir{
+                if let curmapView = self.gameBGView.viewWithTag(dir){
+                    if (curmapView.viewWithTag(-1) as! UILabel).text != (self.gameBGView.viewWithTag(i)?.viewWithTag(-1) as! UILabel).text{
+                        gameover = true
+                    }
+                }
+            }
+            
+        }
+        
+        if gameover{
+            let alert = UIAlertController(title: "提示", message: "游戏结束，继续玩请点击清空", preferredStyle: .Alert)
+            let OK = UIAlertAction(title: "好", style: .Default, handler: nil)
+            alert.addAction(OK)
+            self.presentViewController(alert, animated: true, completion: nil)
+        }
     }
     
     func createInPos(serialnum:Int,number:Int){
@@ -306,18 +351,23 @@ class ViewController: UIViewController {
         poshasvalue[serialnum+1] = true
     }
     
-    func createRandomNum(random:Bool){
-        var number = 2
-        if random{
-            number = (Int(arc4random()%2)+1)*2
-        }
-        var numpos = Int(arc4random()%16)
+    func curposnum() -> Int{
         var curposnum = 0
         for point in poshasvalue{
             if point.1{
                 curposnum++
             }
         }
+        return curposnum
+    }
+    
+    func createRandomNum(random:Bool){
+        var number = 2
+        if random{
+            number = (Int(arc4random()%2)+1)*2
+        }
+        var numpos = Int(arc4random()%16)
+        let curposnum = self.curposnum()
         if curposnum == 16{
             gameOver()
             return
